@@ -4,14 +4,15 @@ import { AppProps } from 'next/app';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { Provider } from 'react-redux';
 import { useState } from 'react';
-import { Toaster } from 'react-hot-toast';
-import { ChakraProvider } from '@chakra-ui/react';
-import type { NextPage } from 'next';
+import { ChakraProvider, localStorageManager } from '@chakra-ui/react';
+import type { NextComponentType } from 'next';
+import { appWithTranslation } from 'next-i18next';
 
 import theme from '@/theme';
 import store from '@/store';
+import { Fonts } from '@/theme/components/fonts';
 
-export type NextPageWithLayout = NextPage & {
+export type NextPageWithLayout = NextComponentType & {
   getLayout?: (page: React.ReactElement) => React.ReactNode;
 };
 
@@ -19,23 +20,27 @@ type AppPropsWithLayout = AppProps & {
   Component: NextPageWithLayout;
 };
 
-const MyApp: FC<AppPropsWithLayout> = ({ Component, ...pageProps }) => {
+const MyApp: FC<AppPropsWithLayout> = ({ Component, pageProps }) => {
   const [queryClient] = useState(() => new QueryClient());
 
   const getLayout = Component.getLayout || ((page: React.ReactNode) => page);
 
+  const colorModeManager = localStorageManager;
+
   return (
     <>
       <Head>
-        <title>Kibo</title>
-        <link rel="shortcut icon" href="/img/chakra-logo.png" />
-        <link rel="apple-touch-icon" href="/img/chakra-logo.png" />
+        <title>Name project</title>
         <link rel="manifest" href="/manifest.json" />
       </Head>
       <Provider store={store}>
-        <ChakraProvider resetCSS theme={theme}>
+        <ChakraProvider
+          resetCSS
+          theme={theme}
+          colorModeManager={colorModeManager}
+        >
+          <Fonts />
           <QueryClientProvider client={queryClient}>
-            <Toaster />
             {getLayout(<Component {...pageProps} />)}
           </QueryClientProvider>
         </ChakraProvider>
@@ -44,4 +49,4 @@ const MyApp: FC<AppPropsWithLayout> = ({ Component, ...pageProps }) => {
   );
 };
 
-export default MyApp;
+export default appWithTranslation(MyApp);
